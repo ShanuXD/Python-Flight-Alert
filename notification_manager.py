@@ -1,4 +1,4 @@
-import requests
+import smtplib
 from twilio.rest import Client
 
 ACCOUNT_SID = "------------TWILIO ACCOUNT SID-------------"
@@ -18,4 +18,15 @@ class NotificationManager:
             from_=TWILIO_NUMBER,
             to=MY_NUMBER
         )
-        # print(message.sid)
+    def sendMail(self, msg, send_to, link):
+        my_email = "------your email------------"
+        password = "--------password-------------"
+        connection = smtplib.SMTP("smtp.gmail.com")
+        connection.starttls()
+        connection.login(user=my_email, password=password)
+        connection.sendmail(
+            from_addr=my_email,
+            to_addrs=send_to,
+            msg=f"Subject:New Low Price Flight!\n\n{msg}\n{link}".encode('utf-8'))
+
+        connection.close()
