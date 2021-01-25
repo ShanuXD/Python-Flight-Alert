@@ -7,6 +7,7 @@ location_endpoint = "https://tequila-api.kiwi.com"
 location_api = "--------------Tequila Api-----------------"
 
 
+
 class FlightSearch:
 
     def getIataCode(self, city_name):
@@ -29,13 +30,16 @@ class FlightSearch:
             "flight_type": "round",
             "one_for_city": 1,
             "max_stopovers": 0,
-            "curr": "GBP"
+            "curr": "INR"
         }
 
         response = requests.get(url=f"{location_endpoint}/v2/search", params=query, headers=header)
-        data = response.json()["data"]
-        if data:
-            # pprint(data)
+
+        try:
+            data = response.json()["data"]
+        except IndexError:
+            query["max_stopovers"] = 1
+
             data = data[0]
             flight_data = FlightData(
                 price=data['price'],
@@ -44,11 +48,24 @@ class FlightSearch:
                 location_city=data["route"][0]["cityTo"],
                 location_airport=data["route"][0]["flyTo"],
                 out_date=data["route"][0]["local_departure"].split("T")[0],
-                return_date=data["route"][1]["local_departure"].split("T")[0]
+                return_date=data["route"][1]["local_departure"].split("T")[0],
+                stop_overs=1,
+                via_city=data["route"][0]["cityTo"]
             )
-
-            print(f"{flight_data.location_city}: £{flight_data.price}")
+            return flight_data
+        else:
+            data = data[0]
+            flight_data = FlightData(
+                price=data['price'],
+                base_city=data["route"][0]["cityFrom"],
+                base_airport=data["route"][0]["flyFrom"],
+                location_city=data["route"][0]["cityTo"],
+                location_airport=data["route"][0]["flyTo"],
+                out_date=data["route"][0]["local_departure"].split("T")[0],
+                return_date=data["route"][1]["local_departure"].split("T")[0],
+                stop_overs=0,
+                via_city=''
+            )
             return flight_data
 
-        return False
 
